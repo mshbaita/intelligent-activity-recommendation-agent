@@ -1,0 +1,44 @@
+name: ChatGPT temporary Argos model fetch
+
+on:
+  push:
+    branches:
+      - chatgpt-temp-fetch-nllb
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Download four public offline translation models
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p models
+          base='https://data.argosopentech.com/argospm/v1'
+          files=(
+            'translate-en_ar-1_0.argosmodel'
+            'translate-en_es-1_0.argosmodel'
+            'translate-es_en-1_0.argosmodel'
+            'translate-nl_en-1_8.argosmodel'
+          )
+          for file in "${files[@]}"; do
+            echo "Downloading ${file}"
+            curl --fail --location --retry 5 --retry-delay 3 --retry-all-errors \
+              --output "models/${file}" "${base}/${file}"
+          done
+          ls -lh models
+          sha256sum models/* | tee models/SHA256SUMS.txt
+
+      - name: Upload model bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: argos-models-en-ar-es-nl
+          path: models/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
