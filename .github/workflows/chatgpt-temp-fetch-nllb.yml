@@ -1,4 +1,4 @@
-name: ChatGPT temporary NLLB model fetch
+name: ChatGPT temporary runner test
 
 on:
   push:
@@ -6,45 +6,16 @@ on:
       - chatgpt-temp-fetch-nllb
     paths:
       - .github/workflows/chatgpt-temp-fetch-nllb.yml
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  fetch-model:
+  test-runner:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Download public NLLB CTranslate2 model
-        env:
-          HF_HUB_DISABLE_XET: '1'
+      - name: Basic runner test
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install 'huggingface_hub>=0.27,<2'
-          python - <<'PY'
-          from huggingface_hub import snapshot_download
-
-          snapshot_download(
-              repo_id='JustFrederik/nllb-200-distilled-600M-ct2-int8',
-              local_dir='nllb_model',
-          )
-          PY
-          find nllb_model -type f -printf '%P %s bytes\n' | sort | tee model-manifest.txt
-
-      - name: Upload model artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nllb-ct2-int8
-          path: |
-            nllb_model
-            model-manifest.txt
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
+          echo "runner works"
+          uname -a
